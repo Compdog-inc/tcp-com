@@ -16,10 +16,7 @@ public class Test {
         long currentPing = 0;
 
         server.getClientConnectedEventListenerEventSource().addEventListener(client -> {
-            client.Send(new HelloPacket(Instant.now(),
-                    "Welcome to the server, " +
-                            client.GetSocketInstance().getInetAddress().toString()
-            ));
+
             return false;
         });
 
@@ -50,13 +47,13 @@ public class Test {
                 if (data == null)
                     continue;
                 switch (data.getId()) {
-                    case SystemPacket.SP_HELLO: {
-                        HelloPacket hello = new HelloPacket(
+                    case SystemPacket.SP_MESSAGE: {
+                        MessagePacket packet = new MessagePacket(
                                 data.getTimestamp(), // server time
                                 Duration.between(data.getTimestamp(), data.getClientTimestamp()), // send delay
                                 Duration.between(data.getClientTimestamp(), Instant.now())); // process delay
-                        hello.fromBytes(data.getData());
-                        System.out.println("Hello from client! [" + hello.getNetTime().toString() + "/" + hello.getQueueTime().toString() + "]: " + hello.getMessage());
+                        packet.fromBytes(data.getData());
+                        System.out.println("["+packet.getAuthor()+"]: "+packet.getMessage());
                     }
                     break;
                     case SystemPacket.SP_PING: {
