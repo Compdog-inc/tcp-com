@@ -21,7 +21,10 @@ public class PromotionPacket extends SystemPacket {
     @Override
     public boolean fromBytes(ByteBuffer bytes) {
         int l = bytes.getInt(0);
-        this.level = l == 0 ? ClientLevel.Unauthorized : l == 1 ? ClientLevel.Authorized : null;
+        this.level = l == 0 ? ClientLevel.Unauthorized :
+                l == 1 ? ClientLevel.Authorized :
+                        l == 2 ? ClientLevel.Dead :
+                                null;
         return true;
     }
 
@@ -29,7 +32,11 @@ public class PromotionPacket extends SystemPacket {
     public ByteBuffer toBytes() {
         ByteBuffer buffer = ByteBuffer.allocate(4);
 
-        buffer.putInt(0, this.level == ClientLevel.Unauthorized ? 0 : this.level == ClientLevel.Authorized ? 1 : -1);
+        buffer.putInt(0,
+                this.level == ClientLevel.Unauthorized ? 0 :
+                        this.level == ClientLevel.Authorized ? 1 :
+                                this.level == ClientLevel.Dead ? 2 :
+                                        -1);
 
         return buffer;
     }
