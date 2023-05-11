@@ -8,6 +8,7 @@ import com.compdog.tcp.SocketData;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Scanner;
 
 public class Test {
     public static void main(String[] args) {
@@ -36,6 +37,17 @@ public class Test {
             }
         }).start();
 
+        new Thread(()->{
+            Scanner scanner = new Scanner(System.in);
+            while(true){
+                String line = scanner.nextLine();
+                MessagePacket packet = new MessagePacket(Instant.now(), "Server", -1, line);
+                for(Client client : server.getClients()){
+                    client.Send(packet);
+                }
+            }
+        }).start();
+
         while(true) {
             for (Client client : server.getClients()) {
                 if(client.getLevel() == ClientLevel.Dead){
@@ -54,6 +66,14 @@ public class Test {
                                 Duration.between(data.getClientTimestamp(), Instant.now())); // process delay
                         packet.fromBytes(data.getData());
                         System.out.println("["+packet.getAuthor()+"]: "+packet.getMessage());
+
+                        // broadcast message to clients
+                        MessagePacket msg = new MessagePacket(Instant.now(), packet.getAuthor(), client.getMetadata().getId(), packet.getMessage());
+                        for(Client c : server.getClients()){
+                            if(c.getMetadata().getId() != client.getMetadata().getId()) {
+                                c.Send(msg);
+                            }
+                        }
                     }
                     break;
                     case SystemPacket.SP_PING: {
