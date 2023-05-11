@@ -137,8 +137,12 @@ public class Client {
         return level;
     }
 
-    public void Promote(ClientLevel level){
+    public void setLevel(ClientLevel level){
         this.level = level;
+    }
+
+    public void Promote(ClientLevel level){
+        setLevel(level);
         // notify client of promotion
         Send(new PromotionPacket(Instant.now(), this.level));
     }
