@@ -41,6 +41,11 @@ public class Test {
 
         while(true) {
             for (Client client : server.getClients()) {
+                if(client.getLevel() == ClientLevel.Dead){
+                    // dead clients shouldn't exist
+                    client.Close();
+                }
+
                 SocketData data = client.GetData().getSecond();
                 if (data == null)
                     continue;
@@ -73,6 +78,8 @@ public class Test {
                         if (Authenticator.Authenticate(packet.getUsername(), packet.getPassword())) {
                             client.getMetadata().setUsername(packet.getUsername());
                             client.Promote(ClientLevel.Authorized);
+                        } else {
+                            client.Promote(ClientLevel.Dead);
                         }
                     }
                     break;
