@@ -44,7 +44,11 @@ public class MessagePacket extends SystemPacket {
 
     @Override
     public ByteBuffer toBytes() {
-        ByteBuffer buffer = ByteBuffer.allocate(StringSerializer.GetSerializedLength(this.message));
+        ByteBuffer buffer = ByteBuffer.allocate(
+                StringSerializer.GetSerializedLength(this.message) +
+                        StringSerializer.GetSerializedLength(this.author) +
+                        4
+        );
 
         int index = 0;
         buffer.put(index, StringSerializer.ToBytes(this.message));
