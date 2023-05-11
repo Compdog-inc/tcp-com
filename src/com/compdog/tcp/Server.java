@@ -10,6 +10,7 @@ import java.net.Inet4Address;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Server {
@@ -19,6 +20,7 @@ public class Server {
     private Thread serverThread;
     private volatile boolean runServer = false;
     private final List<Client> clients = new CopyOnWriteArrayList<>();
+    private Random random = new Random();
 
     private final EventSource<ClientConnectedEventListener> clientConnectedEventListenerEventSource;
     private final EventSource<ClientDisconnectedEventListener> clientDisconnectedEventListenerEventSource;
@@ -75,6 +77,7 @@ public class Server {
                 Client client = new Client();
                 client.WrapSocket(socket);
                 client.getSocketClosedEventListenerEventSource().addEventListener(socketClosedEventListener);
+                client.getMetadata().setId(random.nextInt());
                 clients.add(client);
                 clientConnectedEventListenerEventSource.invoke(l->l.clientConnected(client));
             } catch (IOException e){

@@ -1,6 +1,8 @@
 package com.compdog.com;
 
+import com.compdog.com.auth.Authenticator;
 import com.compdog.tcp.Client;
+import com.compdog.tcp.ClientLevel;
 import com.compdog.tcp.Server;
 import com.compdog.tcp.SocketData;
 
@@ -11,6 +13,7 @@ public class Test {
     public static void main(String[] args) {
         System.out.println("Start");
         Server server = new Server();
+        long currentPing = 0;
 
         server.getClientConnectedEventListenerEventSource().addEventListener(client -> {
             client.Send(new HelloPacket(Instant.now(),
@@ -36,27 +39,51 @@ public class Test {
             }
         }).start();
 
-        while(true){
-            for(Client client : server.getClients()){
+        while(true) {
+            for (Client client : server.getClients()) {
                 SocketData data = client.GetData().getSecond();
-                if(data == null)
+                if (data == null)
                     continue;
-                switch(data.getId()) {
-                    case SystemPacket.SP_HELLO:
+                switch (data.getId()) {
+                    case SystemPacket.SP_HELLO: {
                         HelloPacket hello = new HelloPacket(
                                 data.getTimestamp(), // server time
                                 Duration.between(data.getTimestamp(), data.getClientTimestamp()), // send delay
                                 Duration.between(data.getClientTimestamp(), Instant.now())); // process delay
                         hello.fromBytes(data.getData());
                         System.out.println("Hello from client! [" + hello.getNetTime().toString() + "/" + hello.getQueueTime().toString() + "]: " + hello.getMessage());
-                        break;
-                    case SystemPacket.SP_PING:
+                    }
+                    break;
+                    case SystemPacket.SP_PING: {
                         PingPacket packet = new PingPacket(data.getTimestamp(), // server time
                                 Duration.between(data.getTimestamp(), data.getClientTimestamp()), // send delay
                                 Duration.between(data.getClientTimestamp(), Instant.now()));
                         packet.fromBytes(data.getData());
-                        PingPacket.handlePing(packet, client);
-                        break;
+                        long ping = PingPacket.handlePing(packet, client);
+                        if (ping >= 0) { // received echo
+                            currentPing = ping;
+                        }
+                    }
+                    break;
+                    case SystemPacket.SP_AUTH: {
+                        AuthPacket packet = new AuthPacket(data.getTimestamp(), // server time
+                                Duration.between(data.getTimestamp(), data.getClientTimestamp()), // send delay
+                                Duration.between(data.getClientTimestamp(), Instant.now()));
+                        packet.fromBytes(data.getData());
+                        if (Authenticator.Authenticate(packet.getUsername(), packet.getPassword())) {
+                            client.getMetadata().setUsername(packet.getUsername());
+                            client.Promote(ClientLevel.Authorized);
+                        }
+                    }
+                    break;
+                    case SystemPacket.SP_PROMOTE: {
+                        PromotionPacket packet = new PromotionPacket(data.getTimestamp(), // server time
+                                Duration.between(data.getTimestamp(), data.getClientTimestamp()), // send delay
+                                Duration.between(data.getClientTimestamp(), Instant.now()));
+                        packet.fromBytes(data.getData());
+                        System.out.println("[" + client.getMetadata().getUsername() + "] tried to promote server to " + packet.getLevel().toString());
+                    }
+                    break;
                 }
             }
         }

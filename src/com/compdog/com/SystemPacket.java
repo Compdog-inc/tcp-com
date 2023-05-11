@@ -8,6 +8,8 @@ import java.time.Instant;
 public abstract class SystemPacket implements IPacket {
     public static final int SP_HELLO = 1; // system Hello packet
     public static final int SP_PING = 2; // system Ping packet
+    public static final int SP_AUTH = 3; // system Auth packet
+    public static final int SP_PROMOTE = 4; // system Promotion packet
 
     private final int id;
     private final Instant timestamp;

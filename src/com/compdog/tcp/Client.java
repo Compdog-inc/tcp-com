@@ -1,5 +1,6 @@
 package com.compdog.tcp;
 
+import com.compdog.com.PromotionPacket;
 import com.compdog.tcp.event.SocketClosedEventListener;
 import com.compdog.util.EventSource;
 import com.compdog.util.Tuple;
@@ -23,9 +24,14 @@ public class Client {
     private final ConcurrentLinkedQueue<SocketData> inputData;
     private final EventSource<SocketClosedEventListener> socketClosedEventListenerEventSource;
 
+    private ClientLevel level;
+    private ClientMetadata metadata;
+
     public Client(){
         inputData = new ConcurrentLinkedQueue<>();
         socketClosedEventListenerEventSource = new EventSource<>();
+        level = ClientLevel.Unauthorized;
+        metadata = new ClientMetadata();
     }
 
     public boolean isRunning(){
@@ -125,5 +131,23 @@ public class Client {
 
     public EventSource<SocketClosedEventListener> getSocketClosedEventListenerEventSource() {
         return socketClosedEventListenerEventSource;
+    }
+
+    public ClientLevel getLevel() {
+        return level;
+    }
+
+    public void Promote(ClientLevel level){
+        this.level = level;
+        // notify client of promotion
+        Send(new PromotionPacket(Instant.now(), this.level));
+    }
+
+    public ClientMetadata getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(ClientMetadata metadata) {
+        this.metadata = metadata;
     }
 }

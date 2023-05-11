@@ -52,21 +52,22 @@ public class PingPacket extends SystemPacket {
         this.initialTimestamp = initialTimestamp;
     }
 
-    public static void handlePing(PingPacket ping, Client client){
-        switch(ping.getMode()) {
-            case Initial:
+    public static long handlePing(PingPacket ping, Client client){
+        switch (ping.getMode()) {
+            case Initial -> {
                 PingPacket echo = new PingPacket(Instant.now());
                 echo.setMode(PingMode.Echo);
                 echo.setInitialTimestamp(ping.getTimestamp());
                 client.Send(echo); // echo back
-                break;
-            case Echo:
+            }
+            case Echo -> {
                 Instant start = ping.getInitialTimestamp();
                 // send + one way delay
                 Instant end = ping.getTimestamp().plusNanos(ping.getNetTime().toNanos());
                 Duration delay = Duration.between(start, end);
-                System.out.println("PING: " + delay.toMillis() + " ms");
-                break;
+                return delay.toMillis();
+            }
         }
+        return -1;
     }
 }

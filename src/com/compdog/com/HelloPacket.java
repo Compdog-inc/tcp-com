@@ -1,5 +1,7 @@
 package com.compdog.com;
 
+import com.compdog.util.StringSerializer;
+
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.time.Instant;
@@ -26,25 +28,15 @@ public class HelloPacket extends SystemPacket {
 
     @Override
     public boolean fromBytes(ByteBuffer bytes) {
-        int length = bytes.getInt(0);
-
-        StringBuilder sb = new StringBuilder(length);
-        for(int i=0;i<length;i++){
-            sb.append(bytes.getChar(i*2+4));
-        }
-
-        this.message = sb.toString();
+        this.message = StringSerializer.FromBytes(0, bytes);
         return true;
     }
 
     @Override
     public ByteBuffer toBytes() {
-        ByteBuffer buffer = ByteBuffer.allocate(4 + this.message.length()*2);
+        ByteBuffer buffer = ByteBuffer.allocate(StringSerializer.GetSerializedLength(this.message));
 
-        buffer.putInt(0, this.message.length());
-        for (int i = 0; i < this.message.length(); i++) {
-            buffer.putChar(i*2 + 4, this.message.charAt(i));
-        }
+        buffer.put(0, StringSerializer.ToBytes(this.message));
 
         return buffer;
     }
