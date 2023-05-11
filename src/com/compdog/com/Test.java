@@ -13,7 +13,10 @@ public class Test {
         Server server = new Server();
 
         server.getClientConnectedEventListenerEventSource().addEventListener(client -> {
-            client.Send(new HelloPacket(Instant.now(), "Welcome to the server!"));
+            client.Send(new HelloPacket(Instant.now(),
+                    "Welcome to the server, " +
+                            client.GetSocketInstance().getInetAddress().toString()
+            ));
             return false;
         });
 

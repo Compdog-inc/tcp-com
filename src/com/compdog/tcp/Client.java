@@ -28,6 +28,10 @@ public class Client {
         socketClosedEventListenerEventSource = new EventSource<>();
     }
 
+    public boolean isRunning(){
+        return runThread;
+    }
+
     public void Connect(String host, int port){
         try{
             socket = new Socket(host, port);
@@ -52,6 +56,10 @@ public class Client {
         socketThread.setName("Socket Thread");
         runThread = true;
         socketThread.start();
+    }
+
+    public Socket GetSocketInstance(){
+        return this.socket;
     }
 
     public void Close(){
