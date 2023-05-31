@@ -38,14 +38,20 @@ public class Client {
         return runThread;
     }
 
-    public void Connect(String host, int port){
+    public boolean Connect(String host, int port){
+        boolean ok = true;
         try{
             socket = new Socket(host, port);
         } catch(IOException e){
             logger.log(System.Logger.Level.ERROR, "Error connecting: "+e.getMessage());
+            ok = false;
         }
 
-        WrapSocket(socket);
+        if(ok) {
+            WrapSocket(socket);
+        }
+
+        return ok;
     }
 
     public void WrapSocket(Socket socket){
@@ -69,19 +75,21 @@ public class Client {
     }
 
     public void Close(){
-        try {
-            runThread = false;
-            socket.shutdownInput();
-            socket.shutdownOutput();
-            socketThread.join();
-            socket.close();
-        } catch (IOException e){
-            logger.log(System.Logger.Level.ERROR, "Error closing socket: "+e.getMessage());
-        } catch (InterruptedException e){
-            logger.log(System.Logger.Level.WARNING, "Client thread interrupted: "+e.getMessage());
-        }
+        if(runThread) {
+            try {
+                runThread = false;
+                socket.shutdownInput();
+                socket.shutdownOutput();
+                socketThread.join();
+                socket.close();
+            } catch (IOException e) {
+                logger.log(System.Logger.Level.ERROR, "Error closing socket: " + e.getMessage());
+            } catch (InterruptedException e) {
+                logger.log(System.Logger.Level.WARNING, "Client thread interrupted: " + e.getMessage());
+            }
 
-        inputData.clear();
+            inputData.clear();
+        }
     }
 
     public void Send(IPacket packet){

@@ -60,9 +60,9 @@ public class PingPacket extends SystemPacket {
                 echo.setInitialTimestamp(ping.getTimestamp());
                 client.Send(echo); // echo back
             }
+            // send + one way delay
             case Echo -> {
                 Instant start = ping.getInitialTimestamp();
-                // send + one way delay
                 Instant end = ping.getTimestamp().plusNanos(ping.getNetTime().toNanos());
                 Duration delay = Duration.between(start, end);
                 return delay.toMillis();
