@@ -3,6 +3,7 @@ package com.compdog.com.gui;
 import com.compdog.com.AuthPacket;
 import com.compdog.com.MessagePacket;
 import com.compdog.com.gui.components.ChatMessageComponent;
+import com.compdog.com.gui.components.ChatTextBox;
 import com.compdog.com.gui.components.LoadingIndicator;
 import com.compdog.tcp.Client;
 import com.compdog.tcp.ClientLevel;
@@ -52,7 +53,7 @@ public class ChatWindow extends JFrame {
     private JCheckBox loginAuto;
 
     private JPanel chatMsgsPanel;
-    private JEditorPane chatInput;
+    private ChatTextBox chatInput;
 
     private boolean clientConnected;
 
@@ -85,15 +86,15 @@ public class ChatWindow extends JFrame {
                 Task.Start(this::InitializeClient);
             } else if(client.getLevel() == ClientLevel.Authorized){
                 showPanel(UIPanel.Chat);
-                setTitle("TCP Chat - ["+host+":"+port+"]");
+                setTitle("TCP Chat - ["+client.getMetadata().getUsername()+"@"+host+":"+port+"]");
             }
             return true;
         });
 
         chatMessageEventListenerEventSource.addEventListener((e)->{
-            System.out.println("["+e.getAuthor()+"]: "+e.getMessage());
-            chatMsgsPanel.add(new ChatMessageComponent(e.getMessage()));
+            chatMsgsPanel.add(new ChatMessageComponent(e.getAuthor(), e.getMessage()));
             chatMsgsPanel.revalidate();
+            chatMsgsPanel.scrollRectToVisible(new Rectangle(0,99999,1,1));
             return true;
         });
 
@@ -280,7 +281,7 @@ public class ChatWindow extends JFrame {
 
         chatMsgsPanel = new JPanel();
         chatMsgsPanel.setBackground(pagerPanel.getBackground());
-        chatMsgsPanel.setLayout(new BoxLayout(chatMsgsPanel, BoxLayout.Y_AXIS));
+        chatMsgsPanel.setLayout(new ChatListLayout());
         chatPanel.add(new JScrollPane(chatMsgsPanel), BorderLayout.CENTER);
 
         JPanel bottomBar = new JPanel(new GridBagLayout());
@@ -294,11 +295,15 @@ public class ChatWindow extends JFrame {
         cons.insets.bottom = 10;
         cons.insets.top = 10;
 
-        chatInput = new JEditorPane("text/rtf", "");
+        chatInput = new ChatTextBox();
         chatInput.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
         chatInput.setFont(new Font("Segoe UI", Font.PLAIN, 18));
         chatInput.setBackground(new Color(74, 74, 74));
         chatInput.setForeground(Color.WHITE);
+        chatInput.getChatTextBoxSubmitEventListenerEventSource().addEventListener(()->{
+            Task.Start(this::SendMessage);
+            return true;
+        });
         JScrollPane inputScroll = new JScrollPane(chatInput);
         inputScroll.setPreferredSize(new Dimension(10,100));
         bottomBar.add(inputScroll, cons);
@@ -406,6 +411,7 @@ public class ChatWindow extends JFrame {
         } catch (IOException | BadLocationException e) {
             e.printStackTrace();
         }
+        chatInput.setText("");
         client.Send(new MessagePacket(Instant.now(), client.getMetadata().getUsername(), -1, os.toString()));
     }
 }
