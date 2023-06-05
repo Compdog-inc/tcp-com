@@ -32,7 +32,7 @@ public class Test {
                 }
 
                 for(Client client : server.getClients()){
-                    client.Send(new PingPacket(Instant.now())); // send ping
+                    Pinger.SinglePing(client);
                 }
             }
         }).start();
@@ -69,10 +69,8 @@ public class Test {
 
                         // broadcast message to clients
                         MessagePacket msg = new MessagePacket(Instant.now(), packet.getAuthor(), client.getMetadata().getId(), packet.getMessage());
-                        for(Client c : server.getClients()){
-                            if(c.getMetadata().getId() != client.getMetadata().getId()) {
-                                c.Send(msg);
-                            }
+                        for(Client c : server.getClients()) {
+                            c.Send(msg);
                         }
                     }
                     break;
