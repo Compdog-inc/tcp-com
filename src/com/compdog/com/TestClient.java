@@ -5,13 +5,21 @@ import com.compdog.tcp.Client;
 import com.compdog.tcp.ClientLevel;
 import com.compdog.tcp.SocketData;
 
+import javax.swing.*;
 import java.time.Duration;
 import java.time.Instant;
 
 public class TestClient {
     public static void main(String[] args) {
+        String res = JOptionPane.showInputDialog(null, "server:port to connect to:", "Select Server", JOptionPane.PLAIN_MESSAGE);
+        if(res == null || res.length() == 0){
+            return;
+        }
+
+        String[] parts =res.split(":",2);
+
         Client client = new Client();
-        ChatWindow chat = new ChatWindow(client, "172.27.13.63", 6868);
+        ChatWindow chat = new ChatWindow(client, parts[0], Integer.parseInt(parts[1]));
         chat.setVisible(true);
 
         long currentPing = 0;
