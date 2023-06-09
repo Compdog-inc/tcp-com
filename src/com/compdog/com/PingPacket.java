@@ -54,19 +54,18 @@ public class PingPacket extends SystemPacket {
 
     public static long handlePing(PingPacket ping, Client client){
         switch (ping.getMode()) {
-            case Initial -> {
+            case Initial:
                 PingPacket echo = new PingPacket(Instant.now());
                 echo.setMode(PingMode.Echo);
                 echo.setInitialTimestamp(ping.getTimestamp());
                 client.Send(echo); // echo back
-            }
+                break;
             // send + one way delay
-            case Echo -> {
+            case Echo:
                 Instant start = ping.getInitialTimestamp();
                 Instant end = ping.getTimestamp().plusNanos(ping.getNetTime().toNanos());
                 Duration delay = Duration.between(start, end);
                 return delay.toMillis();
-            }
         }
         return -1;
     }

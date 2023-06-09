@@ -11,8 +11,6 @@ import com.compdog.tcp.event.ChatMessageEventListener;
 import com.compdog.tcp.event.ClientPromotedEventListener;
 import com.compdog.util.EventSource;
 import com.compdog.util.Task;
-import sun.awt.AWTAccessor;
-import sun.awt.windows.WComponentPeer;
 
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
@@ -76,6 +74,8 @@ public class ChatWindow extends JFrame {
         this.host = host;
         this.port = port;
 
+        prefs.putBoolean(AUTOLOGIN_PREF_NAME, false);
+
         clientPromotedEventListenerEventSource = new EventSource<>();
         chatMessageEventListenerEventSource = new EventSource<>();
         clientPromotedEventListenerEventSource.addEventListener((e)->{
@@ -116,11 +116,6 @@ public class ChatWindow extends JFrame {
         addWindowListener(new WindowListener() {
             @Override
             public void windowOpened(WindowEvent e) {
-                AWTAccessor.ComponentAccessor acc = AWTAccessor.getComponentAccessor();
-                WComponentPeer peer = acc.getPeer(e.getWindow());
-                long hwnd = peer.getHWnd(); // finally!!!
-                //DWMApi.DwmSetWindowAttribute(hwnd, DwmWindowAttribute.UseImmersiveDarkMode, 1, 1);
-
                 Task.Start(() -> InitializeClient());
             }
 
@@ -336,21 +331,21 @@ public class ChatWindow extends JFrame {
 
     private void showPanel(UIPanel p){
         switch (p) {
-            case Connecting -> {
+            case Connecting:
                 connectingPanel.setVisible(true);
                 loginPanel.setVisible(false);
                 chatPanel.setVisible(false);
-            }
-            case Login -> {
+                break;
+            case Login:
                 loginPanel.setVisible(true);
                 connectingPanel.setVisible(false);
                 chatPanel.setVisible(false);
-            }
-            case Chat -> {
+                break;
+            case Chat:
                 chatPanel.setVisible(true);
                 connectingPanel.setVisible(false);
                 loginPanel.setVisible(false);
-            }
+                break;
         }
     }
 

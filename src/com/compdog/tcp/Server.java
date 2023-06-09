@@ -4,6 +4,7 @@ import com.compdog.tcp.event.ClientConnectedEventListener;
 import com.compdog.tcp.event.ClientDisconnectedEventListener;
 import com.compdog.tcp.event.SocketClosedEventListener;
 import com.compdog.util.EventSource;
+import com.compdog.util.Logger;
 
 import java.io.IOException;
 import java.net.Inet4Address;
@@ -14,7 +15,7 @@ import java.util.Random;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Server {
-    private static final System.Logger logger = System.getLogger("Server");
+    private static final Logger logger = Logger.getLogger("Server");
 
     private ServerSocket server;
     private Thread serverThread;
@@ -39,9 +40,9 @@ public class Server {
             serverThread.setName("ServerThread");
             serverThread.start();
 
-            logger.log(System.Logger.Level.INFO, "Listening: "+ Inet4Address.getLocalHost().getHostAddress());
+            logger.log(Logger.Level.INFO, "Listening: "+ Inet4Address.getLocalHost().getHostAddress());
         } catch (IOException e){
-            logger.log(System.Logger.Level.ERROR, "Error starting server: "+e.getMessage());
+            logger.log(Logger.Level.ERROR, "Error starting server: "+e.getMessage());
         }
     }
 
@@ -55,9 +56,9 @@ public class Server {
             server.close();
             serverThread.join();
         } catch (IOException e){
-            logger.log(System.Logger.Level.ERROR, "Error closing server: "+e.getMessage());
+            logger.log(Logger.Level.ERROR, "Error closing server: "+e.getMessage());
         } catch (InterruptedException e){
-            logger.log(System.Logger.Level.WARNING, "Server thread interrupted: "+e.getMessage());
+            logger.log(Logger.Level.WARNING, "Server thread interrupted: "+e.getMessage());
         }
     }
 
@@ -81,7 +82,7 @@ public class Server {
                 clients.add(client);
                 clientConnectedEventListenerEventSource.invoke(l->l.clientConnected(client));
             } catch (IOException e){
-                logger.log(System.Logger.Level.ERROR, "Error waiting for clients: "+e.getMessage());
+                logger.log(Logger.Level.ERROR, "Error waiting for clients: "+e.getMessage());
             }
         }
     }
