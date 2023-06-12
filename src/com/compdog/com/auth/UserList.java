@@ -114,15 +114,20 @@ public class UserList {
                     logger.log(Logger.Level.INFO, "Version: "+header.getMajorVersion()+"."+header.getMinorVersion());
                     if(header.getMajorVersion() == MAJOR_VERSION) {
                         users = new UserEntry[header.getEntryCount()];
+                        int offset = 12;
                         for (int i = 0; i < header.getEntryCount(); i++) {
-                            String name = StringSerializer.FromBytes(12, buf);
-                            int nameEnd = 12 + StringSerializer.GetSerializedLength(name);
-                            int passwordLength = buf.getInt(nameEnd);
+                            String name = StringSerializer.FromBytes(offset, buf);
+                            offset += StringSerializer.GetSerializedLength(name);
+                            int passwordLength = buf.getInt(offset);
+                            offset+=4;
                             byte[] password = new byte[passwordLength];
-                            BufferUtils.getBytes(buf, nameEnd + 4, password);
-                            int saltLength = buf.getInt(nameEnd + 4 + passwordLength);
+                            BufferUtils.getBytes(buf, offset, password);
+                            offset += passwordLength;
+                            int saltLength = buf.getInt(offset);
+                            offset+=4;
                             byte[] salt = new byte[saltLength];
-                            BufferUtils.getBytes(buf, nameEnd + 4 + passwordLength, salt);
+                            BufferUtils.getBytes(buf, offset, salt);
+                            offset += saltLength;
                             users[i] = new UserEntry(name, password, salt);
                         }
                     } else {
@@ -164,9 +169,12 @@ public class UserList {
                 );
                 BufferUtils.putBytes(buf, 0, StringSerializer.ToBytes(user.getUsername()));
                 int index = StringSerializer.GetSerializedLength(user.getUsername());
-                buf.putInt(index += 4, user.getPassword().length);
-                BufferUtils.putBytes(buf, index += user.getPassword().length, user.getPassword());
-                buf.putInt(index += 4, user.getSalt().length);
+                buf.putInt(index, user.getPassword().length);
+                index+=4;
+                BufferUtils.putBytes(buf, index, user.getPassword());
+                index += user.getPassword().length;
+                buf.putInt(index, user.getSalt().length);
+                index+=4;
                 BufferUtils.putBytes(buf, index, user.getSalt());
                 stream.write(buf.array());
             }
