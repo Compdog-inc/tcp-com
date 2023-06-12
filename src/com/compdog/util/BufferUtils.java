@@ -8,4 +8,10 @@ public class BufferUtils {
             buffer.put(index + i, bytes[i]);
         }
     }
+
+    public static void getBytes(ByteBuffer buffer, int index, byte[] bytes) {
+        for (int i = 0; i < bytes.length; i++) {
+            bytes[i] = buffer.get(index + i);
+        }
+    }
 }

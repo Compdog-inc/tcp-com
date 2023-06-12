@@ -2,6 +2,7 @@ package com.compdog.com.gui;
 
 import com.compdog.com.AuthPacket;
 import com.compdog.com.MessagePacket;
+import com.compdog.com.TestClient;
 import com.compdog.com.gui.components.ChatMessageComponent;
 import com.compdog.com.gui.components.ChatTextBox;
 import com.compdog.com.gui.components.LoadingIndicator;
@@ -10,6 +11,7 @@ import com.compdog.tcp.ClientLevel;
 import com.compdog.tcp.event.ChatMessageEventListener;
 import com.compdog.tcp.event.ClientPromotedEventListener;
 import com.compdog.util.EventSource;
+import com.compdog.util.Logger;
 import com.compdog.util.Task;
 
 import javax.swing.*;
@@ -23,6 +25,8 @@ import java.time.Instant;
 import java.util.prefs.Preferences;
 
 public class ChatWindow extends JFrame {
+    private static final Logger logger = Logger.getLogger("ChatWindow");
+
     private final Client client;
     private final String host;
     private final int port;
@@ -69,17 +73,21 @@ public class ChatWindow extends JFrame {
         Chat
     }
 
+    public void resetPrefs(){
+        prefs.remove(AUTOLOGIN_PREF_NAME);
+        prefs.remove(USERNAME_PREF_NAME);
+        prefs.remove(PASSWORD_PREF_NAME);
+    }
+
     public ChatWindow(Client client, String host, int port){
         this.client = client;
         this.host = host;
         this.port = port;
 
-        prefs.putBoolean(AUTOLOGIN_PREF_NAME, false);
-
         clientPromotedEventListenerEventSource = new EventSource<>();
         chatMessageEventListenerEventSource = new EventSource<>();
         clientPromotedEventListenerEventSource.addEventListener((e)->{
-            System.out.println("Promoted to " + client.getLevel());
+            logger.log(Logger.Level.INFO, "Promoted to " + client.getLevel());
             if(client.getLevel() == ClientLevel.Dead) {
                 showPanel(UIPanel.Connecting);
                 setTitle("TCP Chat - Connecting");
@@ -87,6 +95,8 @@ public class ChatWindow extends JFrame {
             } else if(client.getLevel() == ClientLevel.Authorized){
                 showPanel(UIPanel.Chat);
                 setTitle("TCP Chat - ["+client.getMetadata().getUsername()+"@"+host+":"+port+"]");
+                usernameInput.setText("");
+                passwordInput.setText("");
             }
             return true;
         });
@@ -200,6 +210,19 @@ public class ChatWindow extends JFrame {
         loadingCont.add(connectRetryBtn);
         connectRetryBtn.setVisible(false);
         connectRetryBtn.addActionListener((e)-> Task.Start(this::InitializeClient));
+        loadingCont.add(Box.createVerticalStrut(20));
+        JButton connectResetBtn = new JButton("Reset");
+        connectResetBtn.setBackground(new Color(74, 74, 74));
+        connectResetBtn.setForeground(Color.WHITE);
+        connectResetBtn.setFocusPainted(false);
+        connectResetBtn.setBorderPainted(false);
+        connectResetBtn.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+        connectResetBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
+        loadingCont.add(connectResetBtn);
+        connectResetBtn.addActionListener((e)-> {
+            this.resetPrefs();
+            TestClient.resetAutoConnect();
+        });
 
         JPanel loginCont = new JPanel();
         loginCont.setBackground(pagerPanel.getBackground());
@@ -310,6 +333,31 @@ public class ChatWindow extends JFrame {
         cons2.insets.right = 10;
         cons2.insets.top = 10;
 
+        GridBagConstraints cons3 = new GridBagConstraints();
+        cons3.anchor = GridBagConstraints.SOUTH;
+        cons3.gridx=0;
+        cons3.gridy=0;
+
+        JPanel buttonPanel = new JPanel(new GridBagLayout());
+        buttonPanel.setBackground(pagerPanel.getBackground());
+
+        JButton logoutBtn = new JButton("Logout");
+        logoutBtn.setBackground(new Color(74, 74, 74));
+        logoutBtn.setForeground(Color.WHITE);
+        logoutBtn.setFocusPainted(false);
+        logoutBtn.setBorderPainted(false);
+        logoutBtn.setFont(new Font("Segoe UI", Font.PLAIN, 18));
+        logoutBtn.addActionListener((e)->{
+            // Reset authorization
+            resetPrefs();
+            client.setLevel(ClientLevel.Unauthorized);
+            logger.log(Logger.Level.WARNING, "Self-promoted to " + client.getLevel()+"! Server not notified.");
+            client.getMetadata().setUsername("");
+            setTitle("TCP Chat - Login [" + host + ":" + port + "]");
+            showPanel(UIPanel.Login);
+        });
+        buttonPanel.add(logoutBtn, cons3);
+
         JButton sendBtn = new JButton("Send");
         sendBtn.setBackground(new Color(74, 74, 74));
         sendBtn.setForeground(Color.WHITE);
@@ -317,8 +365,10 @@ public class ChatWindow extends JFrame {
         sendBtn.setBorderPainted(false);
         sendBtn.setFont(new Font("Segoe UI", Font.PLAIN, 18));
         sendBtn.addActionListener((e)->Task.Start(this::SendMessage));
-        bottomBar.add(sendBtn, cons2);
+        cons3.gridy=1;
+        buttonPanel.add(sendBtn, cons3);
 
+        bottomBar.add(buttonPanel, cons2);
         chatPanel.add(bottomBar, BorderLayout.SOUTH);
 
         showPanel(UIPanel.Connecting);

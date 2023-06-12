@@ -40,7 +40,7 @@ public class Server {
             serverThread.setName("ServerThread");
             serverThread.start();
 
-            logger.log(Logger.Level.INFO, "Listening: "+ Inet4Address.getLocalHost().getHostAddress());
+            logger.log(Logger.Level.INFO, "Listening: "+ Inet4Address.getLocalHost().getHostAddress()+":"+port);
         } catch (IOException e){
             logger.log(Logger.Level.ERROR, "Error starting server: "+e.getMessage());
         }
