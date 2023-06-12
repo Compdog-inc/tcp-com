@@ -18,7 +18,7 @@ public class ChatListLayout implements LayoutManager {
         int heightCounter = 0;
         int maxWidth = 0;
         for(int i=0;i<components.length;i++) {
-            var c = components[components.length-i-1];
+            Component c = components[components.length-i-1];
             heightCounter += c.getPreferredSize().height+10;
             if(c.getPreferredSize().width>maxWidth)
                 maxWidth = c.getPreferredSize().width;
@@ -34,7 +34,7 @@ public class ChatListLayout implements LayoutManager {
         int heightCounter = 0;
         int maxWidth = 0;
         for(int i=0;i<components.length;i++) {
-            var c = components[components.length-i-1];
+            Component c = components[components.length-i-1];
             heightCounter += c.getPreferredSize().height+10;
             if(c.getPreferredSize().width>maxWidth)
                 maxWidth = c.getPreferredSize().width;
@@ -49,7 +49,7 @@ public class ChatListLayout implements LayoutManager {
 
         int heightCounter = 0;
         for(int i=0;i<components.length;i++) {
-            var c = components[components.length-i-1];
+            Component c = components[components.length-i-1];
             c.setBounds(new Rectangle(0, parent.getBounds().height - heightCounter - c.getPreferredSize().height, parent.getBounds().width, c.getPreferredSize().height));
             heightCounter += c.getPreferredSize().height+10;
         }

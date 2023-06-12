@@ -25,7 +25,7 @@ public class PageLayout implements LayoutManager {
     public void layoutContainer(Container parent) {
         Component[] components = parent.getComponents();
 
-        for(var c : components) {
+        for(Component c : components) {
             c.setBounds(parent.getBounds());
         }
     }

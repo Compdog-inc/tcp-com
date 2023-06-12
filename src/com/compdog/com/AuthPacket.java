@@ -1,5 +1,6 @@
 package com.compdog.com;
 
+import com.compdog.util.BufferUtils;
 import com.compdog.util.StringSerializer;
 
 import java.nio.ByteBuffer;
@@ -31,8 +32,8 @@ public class AuthPacket extends SystemPacket {
     public ByteBuffer toBytes() {
         ByteBuffer buffer = ByteBuffer.allocate(StringSerializer.GetSerializedLength(this.username) + StringSerializer.GetSerializedLength(this.password));
 
-        buffer.put(0, StringSerializer.ToBytes(this.username));
-        buffer.put(StringSerializer.GetSerializedLength(this.username), StringSerializer.ToBytes(this.password));
+        BufferUtils.putBytes(buffer,0,StringSerializer.ToBytes(this.username));
+        BufferUtils.putBytes(buffer, StringSerializer.GetSerializedLength(this.username), StringSerializer.ToBytes(this.password));
 
         return buffer;
     }

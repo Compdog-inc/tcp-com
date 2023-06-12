@@ -3,6 +3,7 @@ package com.compdog.tcp;
 import com.compdog.com.PromotionPacket;
 import com.compdog.tcp.event.SocketClosedEventListener;
 import com.compdog.util.EventSource;
+import com.compdog.util.Logger;
 import com.compdog.util.Tuple;
 
 import java.io.IOException;
@@ -14,7 +15,7 @@ import java.time.Instant;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class Client {
-    private static final System.Logger logger = System.getLogger("Client");
+    private static final Logger logger = Logger.getLogger("Client");
 
     private Socket socket;
     private InputStream input;
@@ -43,7 +44,7 @@ public class Client {
         try{
             socket = new Socket(host, port);
         } catch(IOException e){
-            logger.log(System.Logger.Level.ERROR, "Error connecting: "+e.getMessage());
+            logger.log(Logger.Level.ERROR, "Error connecting: "+e.getMessage());
             ok = false;
         }
 
@@ -61,7 +62,7 @@ public class Client {
             output = socket.getOutputStream();
             input = socket.getInputStream();
         } catch(IOException e){
-            logger.log(System.Logger.Level.ERROR, "Error getting stream:" + e.getMessage());
+            logger.log(Logger.Level.ERROR, "Error getting stream:" + e.getMessage());
         }
 
         socketThread = new Thread(this::SocketThread);
@@ -83,9 +84,9 @@ public class Client {
                 socketThread.join();
                 socket.close();
             } catch (IOException e) {
-                logger.log(System.Logger.Level.ERROR, "Error closing socket: " + e.getMessage());
+                logger.log(Logger.Level.ERROR, "Error closing socket: " + e.getMessage());
             } catch (InterruptedException e) {
-                logger.log(System.Logger.Level.WARNING, "Client thread interrupted: " + e.getMessage());
+                logger.log(Logger.Level.WARNING, "Client thread interrupted: " + e.getMessage());
             }
 
             inputData.clear();
@@ -96,7 +97,7 @@ public class Client {
         try {
             output.write(IPacket.getPacketData(packet));
         } catch (IOException e){
-            logger.log(System.Logger.Level.ERROR, "Error writing to socket: "+e.getMessage());
+            logger.log(Logger.Level.ERROR, "Error writing to socket: "+e.getMessage());
             Close();
         }
     }
@@ -105,22 +106,24 @@ public class Client {
         do {
             try {
                 int len = 4+8+4+4;
-                byte[] bts = input.readNBytes(len);
-                if(bts.length == len) {
+                byte[] bts = new byte[len];
+                int tmp = input.read(bts);
+                if(tmp == len) {
                     ByteBuffer header = ByteBuffer.wrap(bts);
                     Instant clientTime = Instant.now();
                     int id = header.getInt(0); // get id
                     long seconds = header.getLong(4);
                     int nano = header.getInt(12);
                     int length = header.getInt(16);
-                    byte[] data = input.readNBytes(length);
-                    if(data.length == length) {
+                    byte[] data = new byte[length];
+                    tmp = input.read(data);
+                    if(tmp == length) {
                         // add data to queue
                         inputData.offer(new SocketData(id, Instant.ofEpochSecond(seconds, nano), clientTime, ByteBuffer.wrap(data)));
                     }
                 }
             } catch(IOException e){
-                logger.log(System.Logger.Level.ERROR, "Error reading socket: "+e.getMessage());
+                logger.log(Logger.Level.ERROR, "Error reading socket: "+e.getMessage());
                 runThread = false;
             }
         } while(runThread);

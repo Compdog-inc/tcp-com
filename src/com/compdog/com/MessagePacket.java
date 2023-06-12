@@ -1,5 +1,6 @@
 package com.compdog.com;
 
+import com.compdog.util.BufferUtils;
 import com.compdog.util.StringSerializer;
 
 import java.nio.ByteBuffer;
@@ -51,9 +52,9 @@ public class MessagePacket extends SystemPacket {
         );
 
         int index = 0;
-        buffer.put(index, StringSerializer.ToBytes(this.message));
+        BufferUtils.putBytes(buffer, index, StringSerializer.ToBytes(this.message));
         index += StringSerializer.GetSerializedLength(this.message);
-        buffer.put(index, StringSerializer.ToBytes(this.author));
+        BufferUtils.putBytes(buffer, index, StringSerializer.ToBytes(this.author));
         index += StringSerializer.GetSerializedLength(this.author);
         buffer.putInt(index, this.authorId);
 
